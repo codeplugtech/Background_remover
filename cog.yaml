@@ -1,0 +1,14 @@
+build:
+  gpu: false
+  cuda: "11.8"
+  python_version: "3.11"
+  python_packages:
+    - easygui==0.98.3
+    - Pillow==10.1.0
+    - rembg==2.0
+  system_packages:
+    - "libgl1-mesa-glx"
+    - "ffmpeg"
+    - "libsm6"
+    - "libxext6"
+predict: "predict.py:Predictor"
