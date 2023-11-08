@@ -5,8 +5,8 @@ import tempfile
 
 
 class Predictor(BasePredictor):
-    def predict(self) -> Path:
-        input_image_path: Path = Input(description="Input file", default=None)
+    def predict(self, input_image_path: Path = Input(description="Input file", default=None)) -> Path:
+
         if not input_image_path:
             raise ValueError("No input image selected")
 
