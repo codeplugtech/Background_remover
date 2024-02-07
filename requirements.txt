@@ -1,4 +1,7 @@
-easygui==0.98.3
-Pillow>=10.1.0
-rembg==2.0.52
-cog>=0.8.6
+torch
+torchvision
+pillow
+numpy
+typing
+scikit-image
+huggingface_hub
