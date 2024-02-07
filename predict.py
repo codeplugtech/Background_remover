@@ -1,28 +1,45 @@
-from cog import BasePredictor, Input, Path
+from skimage import io
+import torch
 from PIL import Image
-from rembg import remove
-import tempfile
+from briarmbg import BriaRMBG
+from utilities import preprocess_image, postprocess_image
+from huggingface_hub import hf_hub_download
+from cog import BasePredictor, Input, Path
 
 
 class Predictor(BasePredictor):
-    def predict(self, input_image_path: Path = Input(description="Input file", default=None)) -> Path:
+    def setup(self) -> None:
+        """Load the model into memory to make running multiple predictions efficient"""
+        model_path = "model.pth"
+        self.net = BriaRMBG()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.net.load_state_dict(torch.load(model_path, map_location=self.device))
+        self.net.to(self.device).eval()
 
-        if not input_image_path:
-            raise ValueError("No input image selected")
+    def predict(
+            self,
+            image: Path = Input(description="Input image"),
+    ) -> Path:
+        """Run a single prediction on the model"""
 
-        print("Input image path:", input_image_path)
+        # prepare input
+        model_input_size = [1024, 1024]
+        orig_im = io.imread(str(image))
+        orig_im_size = orig_im.shape[0:2]
+        img = preprocess_image(orig_im, model_input_size).to(self.device)
 
-        input_image = Image.open(input_image_path)
+        # inference
+        result = self.net(img)
 
-        print("Processing input image...")
+        # post process
+        result_image = postprocess_image(result[0][0], orig_im_size)
 
-        output_image = remove(input_image)
+        # save result
+        pil_im = Image.fromarray(result_image)
+        no_bg_image = Image.new("RGBA", pil_im.size, (0, 0, 0, 0))
+        orig_image = Image.open(str(image))
+        no_bg_image.paste(orig_image, mask=pil_im)
 
-        print("Image processing complete.")
-
-        output_path = Path(tempfile.mkdtemp()) / "output.png"
-        output_image.save(output_path)
-
-        print("Output image saved at:", output_path)
-
-        return Path(output_path)
+        out_path = "/tmp/out.png"
+        no_bg_image.save(out_path)
+        return Path(out_path)
