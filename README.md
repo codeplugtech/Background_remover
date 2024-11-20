@@ -1,5 +1,7 @@
 Cog Implementation of background_remover
 
+[![Try a demo on Replicate](https://replicate.com/codeplugtech/background_remover/badge)](https://replicate.com/codeplugtech/background_remover)
+
 `cog login `
 
 `cog push r8.im/codeplugtech/background_remover`
